@@ -1,0 +1,9 @@
+  password: 
+    title: Repository Password
+    description: Must match remote repository password
+    # renders variable as a password field
+    type: password
+    # renders a second field to re-enter the password for confirmation
+    confirmation: true
+    pattern: "^[a-zA-z]{1,8}$"
+    required: true

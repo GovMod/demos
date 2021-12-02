@@ -1,0 +1,653 @@
+# Title shown in Application Information tab.
+title: Sample input variable schema
+# Sub Title shown in Application Information tab.
+description: Sample description...
+informationalText: Sample informational text to display in tab...
+schemaVersion: 1.1.0
+version: "20190304"
+
+# URL of Logo Icon used on Application Information tab. Logo must be 130x130 pixels.
+# (Optional)
+logoUrl: https://cloudmarketplace.oracle.com/marketplace/content?contentId=53066708
+
+# Used in Application Information tab to Hyperlink Title and Logo to the Marketplace 
+# Listing.
+# Also used to link to Listing Usage section for "View Instructions".
+# (Optional) If it is missing, Application Information uses the 
+# "marketplace-listing-id" tag for the same purpose.
+source:
+  type: marketplace
+  reference: 16132843
+
+locale: "en"
+variableGroups:
+  - title: "Node Configuration"
+    variables:
+      - targetCompartment
+      - ${nodeCount}
+      - ${nodeShapes}
+      - ${availability}
+  - title: "Application Details"
+    variables:
+      - ${username}
+      - ${password}
+      - ${dnsServers}
+  - title: "Subnet"
+    variables:
+      - ${vcnCompartment}
+      - ${myVcn}
+      - ${subnetCompartment}
+      - ${mySubnet}
+      - ${mySubnetWithFilter}
+      - ${hide_public_subnet}
+      - ${hide_private_subnet}
+      - ${hide_regional_subnet}
+      - ${hide_ad_subnet}
+  - title: "Network Configuration"
+    variables:
+      - ${service_gateway}
+      - ${nat_gateway}
+      - ${load_balancer}
+      - ${myNsg}
+      - ${Kubernetes_version}
+      - ${backup_policies}
+      - ${mount_target}
+  - title: "Existing Groups"
+    variables:
+      - ${iam_groups_use_existing}
+  - title: "Identity"
+    variables:
+      - ${iam_groups}
+      - ${iam_dynamic_groups}
+  - title: "Database"
+    variables:
+      - ${dbCompartment}
+      - ${myDbSystem}
+      - ${myDbHome}
+      - ${myDb}
+      - ${myAutonomousDB}
+      - ${myAutonomousDBVersion}
+  - title: "Advanced"
+    variables:
+      - ${myImageId}
+      - ${myShape}
+      - ${myCompatibleShape}
+      - ${myCompatibleShapeBasedOnAd}
+      - ${multilineText}
+    visible: true
+  - title: "Hidden"
+    variables:
+      - ${myRegion}
+    visible: false
+  - title: "Existing Vcn"
+    variables:
+      - ${myVcn}
+    visible:
+      or:
+        - ${useExistingVcn}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+  - title: "Password can't be 'password'!"
+    variables:
+      - ${password}
+  - title: "Complex Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      or:
+        - ${useExistingVcn}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+  - title: "Equality Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      eq:
+        - ${objectStorageTier}
+        - standard
+  - title: "Less than Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      lt:
+        - ${availability}
+        - 5
+  - title: "Less than or Equal Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      le:
+        - ${availability}
+        - 4
+  - title: "Greater than Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      gt:
+        - ${availability}
+        - 5
+  - title: "Greater than or Equal Conditional Section"
+    variables:
+      - ${myVcn}
+    visible:
+      ge:
+        - ${availability}
+        - 4
+  - title: "Vault section"
+    variables:
+      - ${myVault}
+      - ${myVaultKey}
+      - ${mode}
+      - ${myCompatibleKey}
+      - ${algo}
+      - ${myCompatibleKeyBasedOnAlgo}
+      - ${mySecret}
+      - ${myVaultSecret}
+  - title: "DataScience"
+    variables:
+      - ${ods_project_ocid}
+  - title: "Generic File"
+    variables:
+      - ${generic_file}
+  - title: "Resource Tagging"
+    variables:
+      - ${tag}
+
+variables:
+  # string field
+  username:
+    type: string
+    minLength: 1
+    maxLength: 255
+    pattern: "^[a-z][a-zA-Z0-9]+$"
+    # title is used as the label if present
+    title: Username
+    # description used as the tooltip if present
+    description: Enter your username
+    default: admin
+    required: true
+
+  # password field
+  password:
+    description: Really Bad Password Field
+    type: password
+    pattern: "^[a-zA-z]{1,8}$"
+    required: true
+
+  # integer field
+  nodeCount:
+    type: integer
+    description: Number of Nodes
+    minimum: 3
+    maximum: 12
+    multipleOf: 3
+
+  # non-integer number field
+  availability:
+    type: number
+    default: 99.7
+    maximum: 100
+    minimum: 0
+
+  # string enum
+  objectStorageTier:
+    type: enum
+    enum:
+    - archive
+    - standard
+
+  # input a list, each element must be an ip addresses
+  dnsServers:
+    type: array
+    items:
+      type: string
+      pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    minItems: 1
+    uniqueItems: true
+    default: [ 8.8.8.8, 8.8.4.4 ]
+
+  # datetime picker
+  expireDate:
+    type: datetime
+
+  # compartmentId dynamic dropdown, targetCompartment present in input variables
+  targetCompartment:
+    type: oci:identity:compartment:id
+
+
+  # ---- subnet picker ---- #
+
+  useExistingVcn:
+    type: boolean
+
+  vcnCompartment:
+    type: oci:identity:compartment:id
+    visible: ${useExistingVcn}
+
+  myVcn:
+    type: oci:core:vcn:id
+    dependsOn:
+      compartmentId: ${vcnCompartment}
+    visible:
+      or:
+        - ${useExistingVcn}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+
+  subnetCompartment:
+    type: oci:identity:compartment:id
+    visible: ${useExistingVcn}
+
+  mySubnet:
+    type: oci:core:subnet:id
+    dependsOn:
+      compartmentId: ${subnetCompartment}
+      vcnId: ${myVcn}
+    visible: ${useExistingVcn}
+
+  mySubnetWithFilter:
+    type: oci:core:subnet:id
+    dependsOn:
+      compartmentId: ${subnetCompartment}
+      vcnId: ${myVcn}
+      hidePublicSubnet: ${hide_public_subnet}
+      hidePrivateSubnet: ${hide_private_subnet}
+      hideRegionalSubnet: ${hide_regional_subnet}
+      hideAdSubnet: ${hide_ad_subnet}
+    visible: ${useExistingVcn}
+
+  hide_public_subnet:
+    type: boolean
+    default: false
+
+  hide_private_subnet:
+    type: boolean
+    default: false
+
+  hide_regional_subnet:
+    type: boolean
+    default: false
+
+  hide_ad_subnet:
+    type: boolean
+    default: false
+
+  load_balancer:
+    type: oci:loadbalancer:loadbalancer:id
+    pattern: ^(10)Mbps.*$
+    title: Existing LBaaS for "Application" Evaluation
+    required: true
+    dependsOn:
+      compartmentId: ${vcnCompartment}
+
+  Kubernetes_version:
+    type: oci:kubernetes:versions:id
+    title: Kubernetes version
+    description: The Oracle cloud kubernetes version for tenancy.
+    required: true
+    visible: true
+    dependsOn:
+      compartmentId: ${vcnCompartment}
+      clusterOptionId: "all"
+
+  backup_policies:
+    type: oci:blockstorage:policies:id
+    title: Backup Policy
+    description: The Oracle Cloud Backup Policy for tenancy.
+    required: true
+
+  mount_target:
+    type: oci:mount:target:id
+    title: Mount target
+    description: The Oracle Cloud mount target
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      availabilityDomain: ${myAvailabilityDomain}
+
+  myNsg:
+    type: oci:core:nsg:id
+    title: "Network Security Group"
+    description: "Network Security Group description"
+    dependsOn:
+       compartmentId: ${vcnCompartment}
+
+  service_gateway:
+    type: oci:core:servicegateway:id
+    title: NAT Gateway
+    dependsOn:
+      compartmentId: ${vcnCompartment}
+      vcnId: ${myVcn}
+
+  nat_gateway:
+    type: oci:core:servicegateway:id
+    title: NAT Gateway
+    dependsOn:
+      compartmentId: ${vcnCompartment}
+      vcnId: ${myVcn}
+
+  iam_groups_use_existing:
+    type: boolean
+    title: Use existing Groups
+    required: true
+    default: false
+
+  iam_groups:
+    type: oci:identity:groups:id
+    title: Group Name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+    visible:
+       or:
+        - ${iam_groups_use_existing}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+
+  iam_dynamic_groups:
+    type: oci:identity:dynamicgroups:id
+    title: Dynamic Group Name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+    visible:
+       or:
+        - ${iam_groups_use_existing}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+
+  myRegion:
+    type: oci:identity:region:name
+    visible: false
+
+  myImageId:
+    type: oci:core:image:id
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  myShape:
+    type: oci:core:instanceshape:name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  myCompatibleShape:
+    type: oci:core:instanceshape:name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      imageId: ${myImageId}
+    visible:
+      or:
+        - ${useExistingVcn}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+
+  myCompatibleShapeBasedOnAd:
+    type: oci:core:instanceshape:name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      availabilityDomain: ${myAvailabilityDomain}
+    visible:
+      or:
+        - ${useExistingVcn}
+        - and:
+          - and:
+            - true
+            - true
+          - not:
+            - false
+
+  myAvailabilityDomain:
+    type: oci:identity:availabilitydomain:name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+    visible: complexExpression
+
+  myFaultdomain:
+    type: oci:identity:faultdomain:name
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      availabilityDomainName: ${myAvailabilityDomain}
+
+  dbCompartment:
+    type: oci:identity:compartment:id
+
+  myDbSystem:
+    type: oci:database:dbsystem:id
+    dependsOn:
+      compartmentId: ${dbCompartment}
+
+  myDbHome:
+    type: oci:database:dbhome:id
+    dependsOn:
+      dbSystemId: ${myDbSystem}
+      compartmentId: ${dbCompartment}
+
+  myDbHomeVersion:
+    type: oci:database:dbhome:dbversion
+    dependsOn:
+      dbHomeId: ${myDbHome}
+
+  myDb:
+    type: oci:database:database:id
+    dependsOn:
+      dbHomeId: ${myDbHome}
+      compartmentId: ${dbCompartment}
+
+  myAutonomousDB:
+    type: oci:database:autonomousdatabase:id
+    dependsOn:
+      compartmentId: ${dbCompartment}
+      dbWorkload: "DW"
+
+  myAutonomousDBVersion:
+    type: oci:database:autonomousdatabaseversion:id
+    title: AutonomousDatabaseVersionTitle
+    description: AutonomousDatabaseVersionDescription
+    required: true
+    default: "19c"
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+      dbWorkload: "AJD"
+
+  container_cluster_ocid:
+    type: oci:container:cluster:id
+    required: true
+    title: OKE Cluster
+    description: Kubernetes cluster managed by OCI Container Engine for Kubernetes
+    dependsOn:
+      compartmentId: ${compartment_ocid}
+
+  myVault:
+    type: oci:kms:vault:id
+    title: "vault"
+    description: "vault"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  myVaultKey:
+    type: oci:kms:key:id
+    title: "key"
+    description: "key"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      vaultId: ${myVault}
+
+  mode:
+    type: enum
+    enum:
+      - Hsm
+      - Software
+
+  myCompatibleKey:
+    type: oci:kms:key:id
+    title: "key"
+    description: "key"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      vaultId: ${myVault}
+      protectionMode: ${mode}
+
+  algo:
+    type: enum
+    enum:
+      - AES
+      - RSA
+      - ECDSA
+
+  myCompatibleKeyBasedOnAlgo:
+    type: oci:kms:key:id
+    title: "key"
+    description: "key"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      vaultId: ${myVault}
+      protectionMode: ${mode}
+      algorithm: ${algo}
+
+  mySecret:
+    type: "oci:kms:secret:id"
+    title: "secret"
+    description: "secret"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  myVaultSecret:
+    type: "oci:kms:secret:id"
+    title: "secret"
+    description: "secret"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+      vaultId: ${myVault}
+
+  ods_project_ocid:
+    type: oci:ods:project:id
+    required: true
+    title: odsProject
+    description: "Select ods project from list"
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  generic_file:
+    type: file
+    required: true
+    title: GenericFile
+    description: "Drop a raw file (stored as base64 string data)"
+
+  tag:
+    type: oci:identity:tag:value
+    required: true
+    title: Tagging
+    description: Tag value for resource created
+    dependsOn:
+      compartmentId: ${targetCompartment}
+
+  multilineText:
+    type: text
+    required: false
+    multiline: true
+    title: Multi-line value
+    description: Multi-line value
+    default: "First line\nSecond line\nThird line"
+
+# Used to present outputs with more refinement on the Application Information tab.
+# The Application Information tab is only shown if the schema has a "title",
+# "description", and at least one output in this "outputs" section.
+#
+# type:
+#   - boolean
+#   - string
+#   - number
+#   - link - contains url that can be hyperlinked.  If type is not specified and the
+#            value is a proper url, this type is assumed.
+#   - ocid - contains an OCID.  An attempt is made to hyperlink it to the designated
+#            resource in the console.
+#   - csv - synonym for list.  Array of values converted to a comma separated list.
+#   - json - synonym for map.  Map of key / values converted to JSON.
+#   - list - array of values converted to a comma separated list.
+#   - map - map of key / values converted to JSON.
+#
+# displayText: used in links to give text displayed instead of value
+# title: friendly label
+# visible: if false, this ouptut is not shown in the outputs section of Application Information.
+#          It can still be used as the primaryOutputButton.
+outputs:
+  controlCenterUrl:
+    type: link
+    title: Control Center
+    displayText: Control Center
+    visible: false
+
+  schemaRegistryUrl:
+    type: link
+    title: Schema Registry
+    displayText: Schema Registry
+
+  schemaRegistryPublicIps:
+    type: csv
+    title: Public IPs
+
+  schemaRegistryLoadBalancer:
+    type: ocid
+    title: Load Balancer
+  
+  brokerPublicIps:
+    type: csv
+    
+  connectUrl:
+    type: link
+    title: Connect
+    displayText: Connect
+
+  connectPublicIps:
+    type: csv
+    title: Public IPs
+  
+  restUrl:
+    type: link
+    title: Rest API
+
+# primaryOutputButton is a reference to a link output that creates a primary button 
+# on the Application Information tab.
+# (Optional) if not provided, no primary button is shown.  Also if the output 
+# referenced is not a link output, no button is shown.
+primaryOutputButton: ${controlCenterUrl}
+
+# Used to group Outputs.  Any outputs not included in these defined groups, are 
+# included in a default group labelled "Outputs".
+# (Optional) if not groups are given, outputs are not grouped at all.
+outputGroups:
+  - title: Schema Registry
+    outputs:
+      - ${schemaRegistryUrl}
+      - ${schemaRegistryPublicIps}
+      - ${schemaRegistryInstances}
+      - ${schemaRegistryLoadBalancer}
+
+  - title: Broker / Connect
+    outputs:
+      - ${brokerPublicIps}
+      - ${brokerInstances}
+      - ${connectUrl}
+      - ${connectPublicIps}
+      - ${restUrl}
