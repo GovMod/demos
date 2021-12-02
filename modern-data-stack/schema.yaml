@@ -1,9 +1,32 @@
-  password: 
-    title: Repository Password
-    description: Must match remote repository password
+ # Title shown in Application Information tab.
+title: Art of the Possible - Modern Data Stack Demo
+# Sub Title shown in Application Information tab.
+description: Deploy Autonomous Databases and Analytics Cloud
+informationalText: Source https://github.com/GovMod/demos/tree/main/modern-data-stack
+schemaVersion: 1.1.0
+version: "20190304"
+
+locale: "en"
+variableGroups:
+  - title: "Autonomous Configuration"
+    variables:
+      - ${admin_password}
+      # compartmentId dynamic dropdown, targetCompartment present in input variables
+    targetCompartment:
+      type: oci:identity:compartment:id
+    
+variables:
+  # password field
+  admin_password:
+    title: Database Admin Password
+    description: Database Admin Password
     # renders variable as a password field
     type: password
     # renders a second field to re-enter the password for confirmation
     confirmation: true
     pattern: "^[a-zA-z]{1,8}$"
-    required: true
+  
+
+
+
+
