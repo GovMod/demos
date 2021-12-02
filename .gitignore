@@ -10,6 +10,9 @@
 # Exclude Test Directory
 test
 
+# Ignore Zip Files
+*.zip
+
 # Crash log files
 crash.log
 
