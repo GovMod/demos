@@ -11,9 +11,8 @@ compartment_name = "TestDeploy"
 databases = {
     1 = {dbtype = "OLTP"}
     2 = {dbtype = "DW"}
-    6 = {dbtype = "DW"}
-    7 = {dbtype = "APEX"}
-    8 = {dbtype = "AJD"}                         
+    3 = {dbtype = "APEX"}
+    4 = {dbtype = "AJD"}                         
   }
 
 # Suggest setting as ENV or passing in as secret
