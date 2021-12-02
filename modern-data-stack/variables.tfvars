@@ -17,7 +17,7 @@ databases = {
   }
 
 # Suggest setting as ENV or passing in as secret
-admin_password = "Welcome1#"
+admin_password = "Manager422021#"
 
 slackname = "govmod"
 email = "email@oracle.com"
