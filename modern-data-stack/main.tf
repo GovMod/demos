@@ -5,6 +5,10 @@
 ########################################################################################################################
 
 variable compartment_root {}
+variable tenancy_ocid {}
+variable compartment_ocid {}
+variable region {}
+variable current_user_ocid {}
 
 variable "project_name" {}
 variable "environment" {}
@@ -43,6 +47,7 @@ variable "enable_dataguard" {
     tags = merge(var.resource_tags, local.required_tags)
 }
 
+/**/
 ########################################################################################################################
 ### Data Objects
 ########################################################################################################################
@@ -68,7 +73,23 @@ data "oci_identity_compartment" "root" {
     id = var.compartment_root
 }
 
+data "oci_database_autonomous_databases" "databases" {
+    #Required
+    compartment_id = oci_identity_compartment.demo.id
 
+    #Optional
+    # autonomous_container_database_id = oci_database_autonomous_container_database.test_autonomous_container_database.id
+    # db_version = var.autonomous_database_db_version
+    # db_workload = var.autonomous_database_db_workload
+    # display_name = var.autonomous_database_display_name
+    # infrastructure_type = var.autonomous_database_infrastructure_type
+    # is_data_guard_enabled = var.autonomous_database_is_data_guard_enabled
+    # is_free_tier = var.autonomous_database_is_free_tier
+    # is_refreshable_clone = var.autonomous_database_is_refreshable_clone
+    state = "AVAILABLE"
+}
+
+/**/
 ########################################################################################################################
 ### Resources
 ########################################################################################################################
@@ -89,13 +110,18 @@ resource "oci_identity_compartment" "demo" {
     name = var.compartment_name
 
     #Optional
-
+    enable_delete = true
     freeform_tags = local.tags
 }
-/*
 
-*/
+/**/
+#######################################
+### Autonomous Variables
+#######################################
+
+
 variable "databases" {
+  description = "The number of databases to create, by default it's one of each type."
   type    = map(object({
       dbtype  = string
   }))
@@ -163,6 +189,57 @@ resource "oci_database_autonomous_database" "demo" {
     depends_on = [oci_identity_compartment.demo]
 }
 
+
+########################################################################################################################
+### Data Safe
+### Comment Out until after first create
+#########################################
+
+/*
+resource "oci_data_safe_target_database" "db" {
+  compartment_id = oci_identity_compartment.demo.id
+  for_each = {for db in data.oci_database_autonomous_databases.databases.autonomous_databases : db.id => db}
+  #credentials = <<Optional value not found in discovery>>data.oci_database_autonomous_databases.databases.autonomous_databases.*.id
+  database_details {
+    autonomous_database_id = each.value.id
+    #db_system_id = <<Optional value not found in discovery>>
+    # [AUTONOMOUS_DATABASE DATABASE_CLOUD_SERVICE INSTALLED_DATABASE]
+    database_type = "AUTONOMOUS_DATABASE"
+    infrastructure_type = "ORACLE_CLOUD"
+    #instance_id = <<Optional value not found in discovery>>
+    #ip_addresses = <<Optional value not found in discovery>>
+    #listener_port = <<Optional value not found in discovery>>
+    #service_name = <<Optional value not found in discovery>>
+    #vm_cluster_id = <<Optional value not found in discovery>>
+  }
+  #description = <<Optional value not found in discovery>>
+  freeform_tags = local.tags
+  #tls_config = <<Optional value not found in discovery>>
+  depends_on = [oci_database_autonomous_database.demo]
+}
+
+/**/
+
+########################################################################################################################
+### Autonomous Backups - Comment Out until after first create.
+########################################################################################################################
+/*
+data "oci_database_autonomous_database_backups" "backups" {
+     compartment_id = oci_identity_compartment.demo.id
+
+     depends_on = [oci_database_autonomous_database.demo]
+}
+
+resource "oci_database_autonomous_database_backup" "backup" {
+    #Required
+    for_each = {for backup in data.oci_database_autonomous_database_backups.backups.autonomous_database_backups : backup.id => backup}
+    autonomous_database_id = each.value.autonomous_database_id
+    display_name = each.key
+
+    depends_on = [data.oci_database_autonomous_database_backups.backups]
+}
+
+/**/
 ########################################################################################################################
 ### Outputs
 ########################################################################################################################
@@ -202,6 +279,18 @@ output "database_ids" {
 output "database_connection_URLs" {
   value = {
     for k, v in oci_database_autonomous_database.demo : k => v.connection_urls
+  }
+}
+
+output "data_all_dbids" {
+  value = {
+    for k, v in data.oci_database_autonomous_databases.databases.autonomous_databases: k => v.id
+  }
+}
+
+output "ds" {
+  value = {
+    for k, v in data.oci_database_autonomous_databases.databases.autonomous_databases: k => k
   }
 }
 
